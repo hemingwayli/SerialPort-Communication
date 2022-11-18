@@ -26,7 +26,6 @@ namespace SerialCom
             InitializeComponent();
         }
 
-
         //初始化串口界面参数设置
         private void Init_Port_Confs()
         {
@@ -34,18 +33,19 @@ namespace SerialCom
 
             //检查是否含有串口
             string[] str = SerialPort.GetPortNames();
-            if (str == null)
+            if (str == null || str.Length == 0)
             {
-                MessageBox.Show("本机没有串口！", "Error");
+                //MessageBox.Show("本机没有串口！", "Error");
                 return;
             }
+
             //添加串口
             foreach (string s in str)
             {
                 comboBoxCom.Items.Add(s);
             }
             //设置默认串口选项
-            comboBoxCom.SelectedIndex = 0;
+            if (comboBoxCom.Items.Count > 0) comboBoxCom.SelectedIndex = 0;
 
             /*------波特率设置-------*/
             string[] baudRate = { "9600", "19200", "38400", "57600", "115200" };
@@ -89,12 +89,10 @@ namespace SerialCom
         //加载主窗体
         private void MainForm_Load(object sender, EventArgs e)
         {
-
             Init_Port_Confs();
 
             Control.CheckForIllegalCrossThreadCalls = false;
             serialPort.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-
 
             //准备就绪              
             serialPort.DtrEnable = true;
@@ -108,35 +106,32 @@ namespace SerialCom
 
         }
 
-
         //打开串口 关闭串口
         private void buttonOpenCloseCom_Click(object sender, EventArgs e)
         {
             if (!serialPort.IsOpen)//串口处于关闭状态
             {
-                
+
                 try
                 {
-                    
+
                     if (comboBoxCom.SelectedIndex == -1)
                     {
                         MessageBox.Show("Error: 无效的端口,请重新选择", "Error");
                         return;
                     }
-                    string strSerialName    = comboBoxCom.SelectedItem.ToString();
-                    string strBaudRate      = comboBoxBaudRate.SelectedItem.ToString();
-                    string strDataBit       = comboBoxDataBit.SelectedItem.ToString();
-                    string strCheckBit      = comboBoxCheckBit.SelectedItem.ToString();
-                    string strStopBit       = comboBoxStopBit.SelectedItem.ToString();
+                    string strSerialName = comboBoxCom.SelectedItem.ToString();
+                    string strBaudRate = comboBoxBaudRate.SelectedItem.ToString();
+                    string strDataBit = comboBoxDataBit.SelectedItem.ToString();
+                    string strCheckBit = comboBoxCheckBit.SelectedItem.ToString();
+                    string strStopBit = comboBoxStopBit.SelectedItem.ToString();
 
                     Int32 iBaudRate = Convert.ToInt32(strBaudRate);
-                    Int32 iDataBit  = Convert.ToInt32(strDataBit);
+                    Int32 iDataBit = Convert.ToInt32(strDataBit);
 
                     serialPort.PortName = strSerialName;//串口号
                     serialPort.BaudRate = iBaudRate;//波特率
                     serialPort.DataBits = iDataBit;//数据位
-
-                    
 
                     switch (strStopBit)            //停止位
                     {
@@ -153,6 +148,7 @@ namespace SerialCom
                             MessageBox.Show("Error：停止位参数不正确!", "Error");
                             break;
                     }
+
                     switch (strCheckBit)             //校验位
                     {
                         case "None":
@@ -168,7 +164,6 @@ namespace SerialCom
                             MessageBox.Show("Error：校验位参数不正确!", "Error");
                             break;
                     }
-
 
 
                     if (saveDataFile != null)
@@ -195,7 +190,7 @@ namespace SerialCom
                     buttonOpenCloseCom.Text = "关闭串口";
 
                 }
-                catch(System.Exception ex)
+                catch (System.Exception ex)
                 {
                     MessageBox.Show("Error:" + ex.Message, "Error");
                     return;
@@ -203,7 +198,7 @@ namespace SerialCom
             }
             else //串口处于打开状态
             {
-                
+
                 serialPort.Close();//关闭串口
                 //串口关闭时设置有效
                 comboBoxCom.Enabled = true;
@@ -238,7 +233,7 @@ namespace SerialCom
                 //输出当前时间
                 DateTime dateTimeNow = DateTime.Now;
                 //dateTimeNow.GetDateTimeFormats();
-                textBoxReceive.Text += string.Format("{0}\r\n", dateTimeNow);
+                textBoxReceive.Text += string.Format("\r\n{0}\r\n", dateTimeNow);
                 //dateTimeNow.GetDateTimeFormats('f')[0].ToString() + "\r\n";
                 textBoxReceive.ForeColor = Color.Red;    //改变字体的颜色
 
@@ -255,12 +250,12 @@ namespace SerialCom
                             saveDataFS.Write(info, 0, info.Length);
                         }
                     }
-                    catch(System.Exception ex)
+                    catch (System.Exception ex)
                     {
                         MessageBox.Show(ex.Message, "你波特率是不是有问题？？？");
                         return;
                     }
-                    
+
                     textBoxReceive.SelectionStart = textBoxReceive.Text.Length;
                     textBoxReceive.ScrollToCaret();//滚动到光标处
                     serialPort.DiscardInBuffer(); //清空SerialPort控件的Buffer 
@@ -269,32 +264,40 @@ namespace SerialCom
                 {
                     try
                     {
+                        //string input = serialPort.ReadLine();
+                        //char[] values = input.ToCharArray();
+                        //foreach (char letter in values)
+                        //{
+                        //    // Get the integral value of the character.
+                        //    int value = Convert.ToInt32(letter);
+                        //    // Convert the decimal value to a hexadecimal value in string form.
+                        //    string hexOutput = String.Format("{0:X}", value);
+                        //    textBoxReceive.AppendText(hexOutput + " ");
+                        //    textBoxReceive.SelectionStart = textBoxReceive.Text.Length;
+                        //    textBoxReceive.ScrollToCaret();//滚动到光标处
+                        //    //textBoxReceive.Text += hexOutput + " ";
 
-                        string input = serialPort.ReadLine();
-                        char[] values = input.ToCharArray();
-                        foreach (char letter in values)
-                        {
-                            // Get the integral value of the character.
-                            int value = Convert.ToInt32(letter);
-                            // Convert the decimal value to a hexadecimal value in string form.
-                            string hexOutput = String.Format("{0:X}", value);
-                            textBoxReceive.AppendText(hexOutput + " ");
-                            textBoxReceive.SelectionStart = textBoxReceive.Text.Length;
-                            textBoxReceive.ScrollToCaret();//滚动到光标处
-                            //textBoxReceive.Text += hexOutput + " ";
+                        //}
 
-                        }
+                        byte[] bytes = new byte[2];
+                        serialPort.Read(bytes, 0, 2);
+
+                        var hex = BitConverter.ToString(bytes, 0).Replace("-", " ").ToLower();
+                        textBoxReceive.AppendText(hex + " ");
+
+                        textBoxReceive.SelectionStart = textBoxReceive.Text.Length;
+                        textBoxReceive.ScrollToCaret();//滚动到光标处
+
 
                         // save data to file
-                        if (saveDataFS != null)
-                        {
-                            byte[] info = new UTF8Encoding(true).GetBytes(input + "\r\n");
-                            saveDataFS.Write(info, 0, info.Length);
-                        }
-
+                        //if (saveDataFS != null)
+                        //{
+                        //    byte[] info = new UTF8Encoding(true).GetBytes(input + "\r\n");
+                        //    saveDataFS.Write(info, 0, info.Length);
+                        //}
 
                     }
-                    catch(System.Exception ex)
+                    catch (System.Exception ex)
                     {
                         MessageBox.Show(ex.Message, "Error");
                         textBoxReceive.Text = "";//清空
@@ -317,55 +320,56 @@ namespace SerialCom
             }
 
             String strSend = textBoxSend.Text;//发送框数据
+
             if (radioButtonSendDataASCII.Checked == true)//以字符串 ASCII 发送
             {
                 serialPort.WriteLine(strSend);//发送一行数据 
-
             }
             else
             {
-                //16进制数据格式 HXE 发送
-                 
-                char[] values = strSend.ToCharArray();
-                foreach (char letter in values)
-                {
-                    // Get the integral value of the character.
-                    int value = Convert.ToInt32(letter);
-                    // Convert the decimal value to a hexadecimal value in string form.
-                    string hexIutput = String.Format("{0:X}", value);
-                    serialPort.WriteLine(hexIutput);
+                ////16进制数据格式 HXE 发送
+                //char[] values = strSend.ToCharArray();
+                //foreach (char letter in values)
+                //{
+                //    // Get the integral value of the character.
+                //    int value = Convert.ToInt32(letter);
+                //    // Convert the decimal value to a hexadecimal value in string form.
+                //    string hexIutput = String.Format("{0:X}", value);
+                //    serialPort.WriteLine(hexIutput);
 
-                }
+                //}
 
-
-
+                byte[] bs = ConvertHexStringToBytes(strSend);
+                serialPort.Write(bs, 0, bs.Length);
             }
 
+        }
+
+        /// <summary>
+        /// 16进制原码字符串转字节数组
+        /// </summary>
+        /// <param name="hexString">"AABBCC"或"AA BB CC"格式的字符串</param>
+        /// <returns></returns>
+        public static byte[] ConvertHexStringToBytes(string hexString)
+        {
+            hexString = hexString.Replace(" ", "");
+            if (hexString.Length % 2 != 0)
+            {
+                throw new ArgumentException("参数长度不正确,必须是偶数位。");
+            }
+            byte[] returnBytes = new byte[hexString.Length / 2];
+            for (int i = 0; i < returnBytes.Length; i++)
+            {
+                returnBytes[i] = Convert.ToByte(hexString.Substring(i * 2, 2), 16);
+            }
+
+            return returnBytes;
         }
 
         //清空接收数据框
         private void buttonClearRecData_Click(object sender, EventArgs e)
         {
-            
             textBoxReceive.Text = "";
-
-        }
-
-
-        //窗体关闭时
-        private void MainForm_Closing(object sender, EventArgs e)
-        {
-            if (serialPort.IsOpen)
-            {
-                serialPort.Close();//关闭串口
-            }
-
-            if (saveDataFS != null)
-            {
-                saveDataFS.Close(); // 关闭文件
-                saveDataFS = null;//释放文件句柄
-            }
-
         }
 
         //刷新串口
@@ -373,9 +377,9 @@ namespace SerialCom
         {
             comboBoxCom.Text = "";
             comboBoxCom.Items.Clear();
-            
+
             string[] str = SerialPort.GetPortNames();
-            if (str == null)
+            if (str == null || str.Length == 0)
             {
                 MessageBox.Show("本机没有串口！", "Error");
                 return;
@@ -396,7 +400,7 @@ namespace SerialCom
 
         }
 
-        // 退出
+        //退出
         private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (serialPort.IsOpen)
@@ -412,7 +416,7 @@ namespace SerialCom
             this.Close();
         }
 
-        // 重置串口参数设置
+        //重置串口参数设置
         private void ResetPortConfToolStripMenuItem_Click(object sender, EventArgs e)
         {
             comboBoxCom.SelectedIndex = 0;
@@ -439,6 +443,21 @@ namespace SerialCom
             }
 
 
+        }
+
+        //窗体关闭时
+        private void MainForm_Closing(object sender, FormClosingEventArgs e)
+        {
+            if (serialPort.IsOpen)
+            {
+                serialPort.Close();//关闭串口
+            }
+
+            if (saveDataFS != null)
+            {
+                saveDataFS.Close(); // 关闭文件
+                saveDataFS = null;//释放文件句柄
+            }
         }
     }
 }
